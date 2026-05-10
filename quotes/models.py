@@ -170,6 +170,8 @@ class Quote(models.Model):
     access_token = models.CharField(max_length=32, unique=True, editable=False)
     verification_code = models.CharField(max_length=6, editable=False)
 
+    sent_at = models.DateTimeField(null=True, blank=True)
+
     notes = models.TextField(blank=True)
     job_location = models.TextField(blank=True)
     expected_completion_date = models.DateField(null=True, blank=True)
@@ -192,6 +194,7 @@ class Quote(models.Model):
                 old_quote = Quote.objects.get(pk=self.pk)
                 if old_quote.status != "sent" and self.status == "sent":
                     create_follow_up = True
+                    self.sent_at = timezone.now()
             except Quote.DoesNotExist:
                 pass
 
@@ -381,6 +384,19 @@ class Quote(models.Model):
     @property
     def is_invoice(self):
         return self.status in ["invoice", "invoice_viewed"]
+
+
+class QuoteVisit(models.Model):
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="visits")
+    visited_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-visited_at"]
+
+    def __str__(self):
+        return f"Visit to {self.quote} at {self.visited_at:%Y-%m-%d %H:%M:%S}"
 
 
 class QuoteItem(models.Model):

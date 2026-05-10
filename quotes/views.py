@@ -11,7 +11,7 @@ from django.utils import timezone
 from weasyprint import HTML
 
 from .forms import ContactForm
-from .models import BlogPost, Quote
+from .models import BlogPost, Quote, QuoteVisit
 
 
 def home_view(request):
@@ -353,13 +353,32 @@ def client_pdf(request, access_token):
             {"quote": quote, "expired_date": quote.expires_at},
         )
 
-    # Update status to track if the quote has been viewed by the client
-    if quote.status == "sent":
-        quote.status = "quote_viewed"
-        quote.save()
-    elif quote.status == "invoice":
-        quote.status = "invoice_viewed"
-        quote.save()
+    # Log every visit regardless of timing
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    QuoteVisit.objects.create(
+        quote=quote,
+        ip_address=ip,
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+    )
+
+    # Only flip status once the quote has been sent for at least 30 seconds
+    # (filters out email-preview bots that hit the link immediately)
+    BOT_GRACE_SECONDS = 30
+    past_grace = (
+        quote.sent_at is not None
+        and (timezone.now() - quote.sent_at).total_seconds() >= BOT_GRACE_SECONDS
+    )
+    if past_grace:
+        if quote.status == "sent":
+            quote.status = "quote_viewed"
+            quote.save()
+        elif quote.status == "invoice":
+            quote.status = "invoice_viewed"
+            quote.save()
 
     image_path = os.path.join(
         settings.BASE_DIR,

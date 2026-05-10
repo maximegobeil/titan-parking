@@ -13,6 +13,7 @@ from .models import (
     MileageEntry,
     Quote,
     QuoteItem,
+    QuoteVisit,
     Service,
 )
 
@@ -358,3 +359,29 @@ class FollowUpAdmin(admin.ModelAdmin):
         return obj.is_overdue
 
     is_overdue.boolean = True
+
+
+@admin.register(QuoteVisit)
+class QuoteVisitAdmin(admin.ModelAdmin):
+    list_display = ("visited_at", "quote_link", "ip_address", "short_user_agent")
+    list_filter = ("visited_at",)
+    search_fields = ("quote__invoice_number", "ip_address", "user_agent")
+    readonly_fields = ("quote", "visited_at", "ip_address", "user_agent")
+    ordering = ("-visited_at",)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def quote_link(self, obj):
+        url = reverse("admin:quotes_quote_change", args=[obj.quote_id])
+        return format_html('<a href="{}">{}</a>', url, obj.quote)
+
+    quote_link.short_description = "Quote"
+
+    def short_user_agent(self, obj):
+        return obj.user_agent[:80] if obj.user_agent else "-"
+
+    short_user_agent.short_description = "User Agent"
