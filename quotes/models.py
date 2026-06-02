@@ -210,6 +210,10 @@ class Quote(models.Model):
 
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
+        elif self.pk is None:
+            expected = "INV" if self.status == "invoice" else "Q"
+            if not self.invoice_number.startswith(expected):
+                self.invoice_number = self.generate_invoice_number()
 
         super().save(*args, **kwargs)
 

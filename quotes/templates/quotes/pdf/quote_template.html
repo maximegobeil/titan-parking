@@ -41,7 +41,7 @@
             <div class="invoice-info-base invoice-job-info">
                 <div class="invoice-info-title">Informations:</div>
                 <div>Numéro: {{ quote.invoice_number }}</div>
-                <div>Date: {% now "j F Y" %}</div>
+                <div>Date: {{ quote.created_at|date:"j F Y" }}</div>
                 {% if quote.status != 'invoice' %}
                     <div>Date d'échéance: {{ quote.expires_at|date:"j F Y" }}</div>
                 {% endif %}
