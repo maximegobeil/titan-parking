@@ -19,6 +19,11 @@ urlpatterns = [
     path("invoice-html/<int:pk>/", views.invoice_view_html, name="invoice_html"),
     path("terms-pdf/", views.terms_view_pdf, name="terms_pdf"),
     path("quote-calculator/", views.quote_calculator_view, name="quote_calculator"),
+    path(
+        "angle-parking-calculator/",
+        views.angle_parking_calculator_view,
+        name="angle_parking_calculator",
+    ),
     path("client-pdf/<str:access_token>/", views.client_pdf, name="client_pdf"),
     # Services
     path(

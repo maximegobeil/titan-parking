@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Angle Parking Calculator | Titan Parking</title>
+<style>
+  :root{
+    --asphalt-900:#17181a;
+    --asphalt-800:#212327;
+    --asphalt-700:#2c2f34;
+    --line-white:#f2f1ea;
+    --stripe-yellow:#f5c518;
+    --stripe-yellow-dim:#a88c1c;
+    --ok-green:#3fae5c;
+    --muted:#8b8f96;
+    --danger:#e5533d;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--asphalt-900);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(245,197,24,0.05), transparent 40%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 6px);
+    color:var(--line-white);
+    font-family: 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+    min-height:100vh;
+    padding:32px 16px 80px;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family: 'Oswald','Arial Narrow',sans-serif;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--stripe-yellow);
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    display:inline-block;width:22px;height:8px;
+    background:repeating-linear-gradient(90deg, var(--stripe-yellow) 0 4px, transparent 4px 8px);
+  }
+  h1{
+    font-family:'Oswald','Arial Narrow',sans-serif;
+    font-weight:600;
+    font-size:clamp(28px,5vw,42px);
+    margin:0 0 8px;
+    letter-spacing:.01em;
+  }
+  .sub{color:var(--muted);font-size:15px;max-width:60ch;line-height:1.5;}
+
+  .panel{
+    background:var(--asphalt-800);
+    border:1px solid var(--asphalt-700);
+    border-radius:var(--radius);
+    padding:24px;
+    margin-bottom:24px;
+  }
+  .panel h2{
+    font-family:'Oswald','Arial Narrow',sans-serif;
+    font-weight:500;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--muted);
+    margin:0 0 18px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
+    gap:16px;
+  }
+  label{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  input[type=number]{
+    width:100%;
+    background:var(--asphalt-900);
+    border:1px solid var(--asphalt-700);
+    color:var(--line-white);
+    font-size:18px;
+    font-variant-numeric:tabular-nums;
+    padding:10px 12px;
+    border-radius:6px;
+    font-family:inherit;
+    appearance:textfield;
+    -moz-appearance:textfield;
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  input[type=number]:focus{
+    outline:2px solid var(--stripe-yellow);
+    outline-offset:1px;
+    border-color:var(--stripe-yellow);
+  }
+  .unit{color:var(--muted);font-size:12px;margin-left:2px;}
+
+  .table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    margin:0 -24px;
+    padding:0 24px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+    min-width:520px;
+  }
+  thead th{
+    text-align:left;
+    font-family:'Oswald','Arial Narrow',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:500;
+    padding:8px 10px;
+    border-bottom:1px solid var(--asphalt-700);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--asphalt-700);
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.best{background:rgba(63,174,92,0.08);}
+  tbody tr.best td:first-child{
+    color:var(--ok-green);
+    font-weight:600;
+  }
+  .fit-badge{
+    display:inline-block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    padding:2px 7px;
+    border-radius:4px;
+    background:var(--ok-green);
+    color:#0d1a10;
+    font-weight:700;
+    margin-left:8px;
+  }
+  .stalls-num{font-size:19px;font-weight:700;}
+  .leftover-tight{color:var(--ok-green);}
+  .leftover-loose{color:var(--muted);}
+
+  .diagram-row{
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .diagram-row svg{
+    flex-shrink:0;
+    max-width:100%;
+    height:auto;
+  }
+  .diagram-readout{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-width:180px;
+    flex:1;
+  }
+  .readout-item{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    border-bottom:1px dashed var(--asphalt-700);
+    padding-bottom:8px;
+  }
+  .readout-item .k{color:var(--muted);font-size:13px;}
+  .readout-item .v{font-variant-numeric:tabular-nums;font-weight:600;}
+
+  .angle-controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .angle-controls button{
+    background:var(--asphalt-900);
+    border:1px solid var(--asphalt-700);
+    color:var(--line-white);
+    padding:8px 16px;
+    border-radius:20px;
+    font-size:13.5px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:all .12s ease;
+    touch-action:manipulation;
+  }
+  .angle-controls button:hover{border-color:var(--stripe-yellow-dim);}
+  .angle-controls button.active{
+    background:var(--stripe-yellow);
+    color:#1a1400;
+    border-color:var(--stripe-yellow);
+    font-weight:700;
+  }
+  footer{
+    color:var(--muted);
+    font-size:12.5px;
+    text-align:center;
+    margin-top:24px;
+    line-height:1.6;
+  }
+
+  @media (max-width: 600px){
+    body{padding:20px 12px 60px;}
+    .panel{padding:16px;}
+    .table-wrap{margin:0 -16px;padding:0 16px;}
+    .grid{grid-template-columns:1fr;}
+    .diagram-row{flex-direction:column;align-items:stretch;}
+    .diagram-row svg{width:100%;max-width:320px;margin:0 auto;}
+    .diagram-readout{min-width:0;width:100%;}
+    .angle-controls button{padding:10px 18px;font-size:14px;}
+    h1{margin-bottom:12px;}
+    .sub{font-size:14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .angle-controls button{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Titan Parking &mdash; Field Tools</div>
+    <h1>Angle Parking Calculator</h1>
+    <p class="sub">Enter the curb length you're striping and the stall size. This lays out how many stalls fit at each common angle, so you can pick the layout before you snap a line.</p>
+  </header>
+
+  <div class="panel">
+    <h2>Site Measurements</h2>
+    <div class="grid">
+      <div>
+        <label for="curbLength">Curb / row length <span class="unit">(ft)</span></label>
+        <input type="number" id="curbLength" value="166" min="1" step="0.1" inputmode="decimal">
+      </div>
+      <div>
+        <label for="stallWidth">Stall width <span class="unit">(ft)</span></label>
+        <input type="number" id="stallWidth" value="9" min="1" step="0.1" inputmode="decimal">
+      </div>
+      <div>
+        <label for="lotDepth">Depth into lot <span class="unit">(ft, curb to back line)</span></label>
+        <input type="number" id="lotDepth" value="20" min="1" step="0.1" inputmode="decimal">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Layout Options by Angle</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Angle</th>
+            <th>Spacing / stall</th>
+            <th>Stalls that fit</th>
+            <th>Leftover curb</th>
+            <th>Stripe length</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <p style="color:var(--muted);font-size:12.5px;margin:14px 0 0;">
+      "Stripe length" is how long each painted line runs, curb to back, at your depth-into-lot measurement.
+    </p>
+  </div>
+
+  <div class="panel">
+    <h2>Single Angle &mdash; Stripe Layout</h2>
+    <div class="angle-controls" id="angleButtons"></div>
+    <div class="diagram-row">
+      <svg id="diagramSvg" viewBox="0 0 320 220" width="320" height="220"></svg>
+      <div class="diagram-readout" id="diagramReadout"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Where To Start &mdash; Layout From Corner</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin:0 0 16px;line-height:1.5;">
+      Pick your starting corner as zero. Snap your curb baseline first. For each stripe below, measure the "along curb" distance from your corner, then go straight back the depth-into-lot distance to mark the top point. Pop a chalk line between the two marks.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Stripe #</th>
+            <th>Bottom pt (along curb)</th>
+            <th>Top pt (along curb)</th>
+            <th>Top pt (depth back)</th>
+          </tr>
+        </thead>
+        <tbody id="layoutBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Spacing = stall width &divide; sin(angle) &middot; Stripe lean = depth &divide; tan(angle) &middot; Stripe length = depth &divide; sin(angle)<br>
+    Figures are geometric guides only &mdash; confirm against local code minimums before striping.
+  </footer>
+</div>
+
+<script>
+const ANGLES = [90, 75, 60, 45, 30];
+let selectedAngle = 90;
+
+const curbInput = document.getElementById('curbLength');
+const widthInput = document.getElementById('stallWidth');
+const depthInput = document.getElementById('lotDepth');
+const resultsBody = document.getElementById('resultsBody');
+const angleButtons = document.getElementById('angleButtons');
+const diagramSvg = document.getElementById('diagramSvg');
+const diagramReadout = document.getElementById('diagramReadout');
+
+function calc(angleDeg, curb, W, depth){
+  const rad = angleDeg * Math.PI / 180;
+  const spacing = W / Math.sin(rad);
+  const stalls = Math.floor(curb / spacing);
+  const leftover = curb - stalls * spacing;
+  const lean = depth / Math.tan(rad);
+  const stripeLength = depth / Math.sin(rad);
+  return {angleDeg, spacing, stalls, leftover, depth, lean, stripeLength};
+}
+
+function fmt(n){ return n.toFixed(2); }
+
+function render(){
+  const curb = parseFloat(curbInput.value) || 0;
+  const W = parseFloat(widthInput.value) || 0;
+  const D = parseFloat(depthInput.value) || 0;
+
+  const rows = ANGLES.map(a => calc(a, curb, W, D));
+  const tightest = rows.reduce((best, r) => (r.leftover < best.leftover ? r : best), rows[0]);
+
+  resultsBody.innerHTML = rows.map(r => {
+    const isBest = r === tightest && curb > 0;
+    const leftoverClass = r.leftover < W * 0.15 ? 'leftover-tight' : 'leftover-loose';
+    return `<tr class="${isBest ? 'best' : ''}">
+      <td>${r.angleDeg}&deg;${isBest ? '<span class="fit-badge">Best fit</span>' : ''}</td>
+      <td>${fmt(r.spacing)} ft</td>
+      <td class="stalls-num">${r.stalls}</td>
+      <td class="${leftoverClass}">${fmt(r.leftover)} ft</td>
+      <td>${fmt(r.stripeLength)} ft</td>
+    </tr>`;
+  }).join('');
+
+  angleButtons.innerHTML = ANGLES.map(a =>
+    `<button data-angle="${a}" class="${a === selectedAngle ? 'active' : ''}">${a}&deg;</button>`
+  ).join('');
+  angleButtons.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedAngle = parseInt(btn.dataset.angle, 10);
+      render();
+    });
+  });
+
+  const single = calc(selectedAngle, curb, W, D);
+  drawDiagram(single);
+
+  diagramReadout.innerHTML = `
+    <div class="readout-item"><span class="k">Angle</span><span class="v">${selectedAngle}&deg;</span></div>
+    <div class="readout-item"><span class="k">Spacing along curb</span><span class="v">${fmt(single.spacing)} ft</span></div>
+    <div class="readout-item"><span class="k">Depth into lot</span><span class="v">${fmt(single.depth)} ft</span></div>
+    <div class="readout-item"><span class="k">Stripe lean</span><span class="v">${fmt(single.lean)} ft</span></div>
+    <div class="readout-item"><span class="k">Stripe length</span><span class="v">${fmt(single.stripeLength)} ft</span></div>
+    <div class="readout-item"><span class="k">Stalls in ${curb || 0} ft</span><span class="v">${single.stalls}</span></div>
+  `;
+
+  const rowsToShow = Math.min(single.stalls + 1, 20);
+  let layoutRows = '';
+  for(let n=0; n<rowsToShow; n++){
+    const base = n * single.spacing;
+    const top = base + single.lean;
+    layoutRows += `<tr>
+      <td>#${n+1}</td>
+      <td>${fmt(base)} ft</td>
+      <td>${fmt(top)} ft</td>
+      <td>${fmt(single.depth)} ft</td>
+    </tr>`;
+  }
+  document.getElementById('layoutBody').innerHTML = layoutRows || '<tr><td colspan="4" style="color:var(--muted);">Enter a curb length to generate a layout.</td></tr>';
+}
+
+function drawDiagram(single){
+  const maxDim = Math.max(single.depth, single.spacing * 3, 1);
+  const scale = 140 / maxDim;
+  const baseY = 190;
+  const curbX0 = 24;
+
+  const spacingPx = single.spacing * scale;
+  const depthPx = single.depth * scale;
+  const leanPx = single.lean * scale;
+
+  let stripes = '';
+  const numShow = 3;
+  for(let i=0;i<=numShow;i++){
+    const x0 = curbX0 + i*spacingPx;
+    const x1 = x0 + leanPx;
+    stripes += `<line x1="${x0}" y1="${baseY}" x2="${x1}" y2="${baseY-depthPx}"
+      stroke="var(--stripe-yellow)" stroke-width="3" stroke-linecap="round"/>`;
+  }
+
+  const curbEndX = curbX0 + numShow*spacingPx + 30;
+
+  const curbLine = `<line x1="${curbX0-14}" y1="${baseY}" x2="${curbEndX}" y2="${baseY}"
+      stroke="var(--line-white)" stroke-width="2" opacity="0.5"/>`;
+
+  const backLine = `<line x1="${curbX0-14}" y1="${baseY-depthPx}" x2="${curbEndX}" y2="${baseY-depthPx}"
+      stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>`;
+
+  const corner = `<circle cx="${curbX0}" cy="${baseY}" r="4.5" fill="var(--ok-green)"/>
+    <text x="${curbX0-14}" y="${baseY+16}" fill="var(--ok-green)" font-size="10.5" font-family="sans-serif" font-weight="bold">START</text>`;
+
+  diagramSvg.innerHTML = `
+    <rect width="320" height="220" fill="var(--asphalt-900)" rx="8"/>
+    ${backLine}
+    ${curbLine}
+    ${stripes}
+    ${corner}
+    <text x="${curbX0}" y="${baseY+30}" fill="var(--muted)" font-size="10.5" font-family="sans-serif">curb / driving aisle</text>
+    <text x="${curbX0}" y="${baseY-depthPx-8}" fill="var(--muted)" font-size="10.5" font-family="sans-serif">back line (depth into lot)</text>
+  `;
+}
+
+[curbInput, widthInput, depthInput].forEach(el => el.addEventListener('input', render));
+render();
+</script>
+</body>
+</html>

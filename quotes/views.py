@@ -343,6 +343,11 @@ def quote_calculator_view(request):
     return render(request, "pages/quote-calculator.html")
 
 
+@login_required
+def angle_parking_calculator_view(request):
+    return render(request, "pages/angle-parking-calculator.html")
+
+
 def client_pdf(request, access_token):
     quote = get_object_or_404(Quote, access_token=access_token)
 
